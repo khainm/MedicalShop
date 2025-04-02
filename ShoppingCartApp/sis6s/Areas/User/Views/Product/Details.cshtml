@@ -1,0 +1,195 @@
+﻿@model sis6s.Models.Product
+
+@{
+    ViewData["Title"] = Model.Name;
+}
+
+<div class="container py-4">
+    <nav aria-label="breadcrumb">
+        <ol class="breadcrumb">
+            <li class="breadcrumb-item"><a href="@Url.Action("Index", "Home")">Home</a></li>
+            <li class="breadcrumb-item"><a href="@Url.Action("Index", "Product")">Products</a></li>
+            <li class="breadcrumb-item active" aria-current="page">@Model.Name</li>
+        </ol>
+    </nav>
+
+    <div class="row">
+        <!-- Product Image -->
+        <div class="col-md-6">
+            <div class="card">
+                <img src="@Model.Image" class="card-img-top" alt="@Model.Name">
+            </div>
+            <div class="row mt-3">
+                <div class="col-3">
+                    <img src="@Model.Image" class="img-thumbnail" alt="Thumbnail 1">
+                </div>
+                <div class="col-3">
+                    <img src="@Model.Image" class="img-thumbnail" alt="Thumbnail 2">
+                </div>
+                <div class="col-3">
+                    <img src="@Model.Image" class="img-thumbnail" alt="Thumbnail 3">
+                </div>
+                <div class="col-3">
+                    <img src="@Model.Image" class="img-thumbnail" alt="Thumbnail 4">
+                </div>
+            </div>
+        </div>
+
+        <!-- Product Information -->
+        <div class="col-md-6">
+            <h1 class="mb-3">@Model.Name</h1>
+            
+            <div class="mb-4">
+                <span class="h3 text-primary">@Model.Price.ToString("N0") $</span>
+                @if (Model.Stock <= 5)
+                {
+                    <span class="badge bg-danger ms-2">Low Stock</span>
+                }
+            </div>
+
+            <div class="mb-4">
+                <h5>Product Description</h5>
+                <p class="text-muted">@Model.Description</p>
+            </div>
+
+            <div class="mb-4">
+                <h5>Detailed Information</h5>
+                <ul class="list-unstyled">
+                    <li><strong>Category:</strong> @Model.Category?.Name</li>
+                    <li><strong>In Stock:</strong> @Model.Stock</li>
+                    <li><strong>Last Updated:</strong> @(Model.UpdatedAt.HasValue ? Model.UpdatedAt.Value.ToString("dd/MM/yyyy") : "N/A")</li>
+                </ul>
+            </div>
+
+            <form asp-action="AddToCart" method="post" class="mb-4">
+                <input type="hidden" name="productId" value="@Model.Id" />
+                <div class="row align-items-center">
+                    <div class="col-auto">
+                        <div class="input-group" style="width: 150px;">
+                            <button type="button" class="btn btn-outline-secondary" onclick="decrementQuantity()">-</button>
+                            <input type="number" class="form-control text-center" name="quantity" id="quantity" value="1" min="1" max="@Model.Stock">
+                            <button type="button" class="btn btn-outline-secondary" onclick="incrementQuantity()">+</button>
+                        </div>
+                    </div>
+                    <div class="col">
+                        <button type="submit" class="btn btn-primary btn-lg w-100">
+                            <i class="fas fa-shopping-cart"></i> Add to Cart
+                        </button>
+                    </div>
+                </div>
+            </form>
+
+            <div class="card">
+                <div class="card-body">
+                    <h5 class="card-title">Store Policies</h5>
+                    <ul class="list-unstyled mb-0">
+                        <li><i class="fas fa-check text-success me-2"></i>Free shipping for orders over $25</li>
+                        <li><i class="fas fa-check text-success me-2"></i>Returns within 7 days</li>
+                        <li><i class="fas fa-check text-success me-2"></i>Cash on delivery available</li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Detailed Information Tabs -->
+    <div class="row mt-5">
+        <div class="col-12">
+            <ul class="nav nav-tabs" id="productTabs" role="tablist">
+                <li class="nav-item" role="presentation">
+                    <button class="nav-link active" id="description-tab" data-bs-toggle="tab" data-bs-target="#description" type="button" role="tab">
+                        Detailed Description
+                    </button>
+                </li>
+                <li class="nav-item" role="presentation">
+                    <button class="nav-link" id="specs-tab" data-bs-toggle="tab" data-bs-target="#specs" type="button" role="tab">
+                        Specifications
+                    </button>
+                </li>
+                <li class="nav-item" role="presentation">
+                    <button class="nav-link" id="reviews-tab" data-bs-toggle="tab" data-bs-target="#reviews" type="button" role="tab">
+                        Reviews
+                    </button>
+                </li>
+            </ul>
+            <div class="tab-content p-4 border border-top-0" id="productTabsContent">
+                <div class="tab-pane fade show active" id="description" role="tabpanel">
+                    <p>@Model.Description</p>
+                </div>
+                <div class="tab-pane fade" id="specs" role="tabpanel">
+                    <table class="table">
+                        <tbody>
+                            <tr>
+                                <th>Brand</th>
+                                <td>@Model.Category?.Name</td>
+                            </tr>
+                            <tr>
+                                <th>Origin</th>
+                                <td>Vietnam</td>
+                            </tr>
+                            <tr>
+                                <th>Storage</th>
+                                <td>Store in a cool, dry place</td>
+                            </tr>
+                            <tr>
+                                <th>Expiration Date</th>
+                                <td>See packaging</td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+                <div class="tab-pane fade" id="reviews" role="tabpanel">
+                    <div class="alert alert-info">
+                        No reviews for this product yet.
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Related Products -->
+    <div class="row mt-5">
+        <div class="col-12">
+            <h3 class="mb-4">Related Products</h3>
+            <div class="row">
+                @foreach (var item in ViewBag.RelatedProducts ?? new List<dynamic>())
+                {
+                    <div class="col-md-3 mb-4">
+                        <div class="card product-card h-100">
+                            <img src="@item.Image" class="card-img-top" alt="@item.Name">
+                            <div class="card-body">
+                                <h5 class="card-title">@item.Name</h5>
+                                <p class="card-text text-muted">@item.Description</p>
+                                <p class="card-text"><strong>@item.Price.ToString("N0") $</strong></p>
+                                <a href="@Url.Action("Details", new { id = item.Id })" class="btn btn-outline-primary">
+                                    <i class="fas fa-info-circle"></i> Details
+                                </a>
+                            </div>
+                        </div>
+                    </div>
+                }
+            </div>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    <script>
+        function incrementQuantity() {
+            const input = document.getElementById('quantity');
+            const max = parseInt(input.getAttribute('max'));
+            const currentValue = parseInt(input.value);
+            if (currentValue < max) {
+                input.value = currentValue + 1;
+            }
+        }
+
+        function decrementQuantity() {
+            const input = document.getElementById('quantity');
+            const currentValue = parseInt(input.value);
+            if (currentValue > 1) {
+                input.value = currentValue - 1;
+            }
+        }
+    </script>
+} 

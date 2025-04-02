@@ -1,0 +1,65 @@
+@model sis6s.Areas.Admin.Models.UserViewModel
+
+@{
+    ViewData["Title"] = "Delete User";
+    Layout = "~/Areas/Admin/Views/Shared/_layoutAdmin.cshtml";
+}
+
+<div class="container-fluid px-4">
+    <h1 class="mt-4">Delete User</h1>
+    <ol class="breadcrumb mb-4">
+        <li class="breadcrumb-item"><a href="/Admin">Home</a></li>
+        <li class="breadcrumb-item"><a href="/Admin/UserManagement">User Management</a></li>
+        <li class="breadcrumb-item active">Delete User</li>
+    </ol>
+
+    <div class="row">
+        <div class="col-md-6 mx-auto">
+            <div class="card mb-4">
+                <div class="card-header bg-danger text-white">
+                    <i class="fas fa-exclamation-triangle me-1"></i>
+                    Warning
+                </div>
+                <div class="card-body">
+                    <div class="alert alert-danger">
+                        <h5 class="alert-heading">Are you sure you want to delete this user?</h5>
+                        <p>This action cannot be undone. All data associated with this user will be permanently deleted.</p>
+                    </div>
+                    
+                    <div class="mb-3">
+                        <label class="form-label fw-bold">Username:</label>
+                        <p>@Model.UserName</p>
+                    </div>
+                    
+                    <div class="mb-3">
+                        <label class="form-label fw-bold">Email:</label>
+                        <p>@Model.Email</p>
+                    </div>
+                    
+                    <div class="mb-3">
+                        <label class="form-label fw-bold">Full Name:</label>
+                        <p>@Model.FullName</p>
+                    </div>
+                    
+                    <div class="mb-3">
+                        <label class="form-label fw-bold">Phone Number:</label>
+                        <p>@Model.PhoneNumber</p>
+                    </div>
+                    
+                    <div class="mb-3">
+                        <label class="form-label fw-bold">Roles:</label>
+                        <p>@Model.Roles</p>
+                    </div>
+                    
+                    <form asp-action="Delete" method="post">
+                        <input type="hidden" asp-for="Id" />
+                        <div class="d-grid gap-2 d-md-flex justify-content-md-end">
+                            <a asp-action="Index" class="btn btn-secondary">Cancel</a>
+                            <button type="submit" class="btn btn-danger">Delete User</button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</div> 

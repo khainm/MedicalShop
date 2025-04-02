@@ -1,0 +1,147 @@
+@model sis6s.Models.Order
+
+@{
+    ViewData["Title"] = "Order Details #" + Model.Id;
+}
+
+<div class="container py-4">
+    <nav aria-label="breadcrumb">
+        <ol class="breadcrumb">
+            <li class="breadcrumb-item"><a href="@Url.Action("Index", "Home")">Home</a></li>
+            <li class="breadcrumb-item"><a href="@Url.Action("Index", "Order")">My Orders</a></li>
+            <li class="breadcrumb-item active" aria-current="page">Order Details #@Model.Id</li>
+        </ol>
+    </nav>
+
+    <div class="card mb-4">
+        <div class="card-header bg-light">
+            <div class="d-flex justify-content-between align-items-center">
+                <div>
+                    <h5 class="mb-0">Order #@Model.Id</h5>
+                    <small class="text-muted">Ordered on: @Model.OrderDate.ToString("dd/MM/yyyy HH:mm")</small>
+                </div>
+                <div>
+                    @switch (Model.Status)
+                    {
+                        case sis6s.Models.OrderStatus.Pending:
+                            <span class="badge bg-warning">Unpaid</span>
+                            break;
+                        case sis6s.Models.OrderStatus.Processing:
+                            <span class="badge bg-info">Processing</span>
+                            break;
+                        case sis6s.Models.OrderStatus.Shipped:
+                            <span class="badge bg-primary">Shipped</span>
+                            break;
+                        case sis6s.Models.OrderStatus.Delivered:
+                            <span class="badge bg-success">Delivered</span>
+                            break;
+                        case sis6s.Models.OrderStatus.Cancelled:
+                            <span class="badge bg-danger">Cancelled</span>
+                            break;
+                    }
+                </div>
+            </div>
+        </div>
+        <div class="card-body">
+            <div class="row mb-4">
+                <div class="col-md-6">
+                    <h6>Customer Information</h6>
+                    <p class="mb-1"><strong>Name:</strong> @Model.User.FullName</p>
+                    <p class="mb-1"><strong>Email:</strong> @Model.User.Email</p>
+                    <p class="mb-1"><strong>Phone:</strong> @Model.User.PhoneNumber</p>
+                    <p class="mb-1"><strong>Contact Address:</strong> @Model.User.Address</p>
+                </div>
+                <div class="col-md-6">
+                    <h6>Shipping Information</h6>
+                    <p class="mb-1"><strong>Shipping Address:</strong> @Model.ShippingAddress</p>
+                    <p class="mb-1"><strong>Shipping Method:</strong> @Model.ShippingMethod</p>
+                  
+                    <p class="mb-1"><strong>Payment Method:</strong> @Model.PaymentMethod</p>
+                    @if (!string.IsNullOrEmpty(Model.TransactionId))
+                    {
+                        <p class="mb-1"><strong>Transaction ID:</strong> @Model.TransactionId</p>
+                    }
+                </div>
+            </div>
+
+            <div class="table-responsive">
+                <table class="table">
+                    <thead>
+                        <tr>
+                            <th>Product</th>
+                            <th>Price</th>
+                            <th>Quantity</th>
+                            <th>Total</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        @foreach (var item in Model.OrderItems)
+                        {
+                            <tr>
+                                <td>
+                                    <div class="d-flex align-items-center">
+                                        @if (!string.IsNullOrEmpty(item.Product.Image))
+                                        {
+                                            <img src="@item.Product.Image" alt="@item.Product.Name" style="width: 50px; height: 50px; object-fit: cover;" class="me-2">
+                                        }
+                                        <div>
+                                            <h6 class="mb-0">@item.Product.Name</h6>
+                                            <small class="text-muted">@(string.IsNullOrEmpty(item.Product.Description) ? "" : item.Product.Description.Length > 50 ? item.Product.Description.Substring(0, 50) + "..." : item.Product.Description)</small>
+                                        </div>
+                                    </div>
+                                </td>
+                                        <td>@item.UnitPrice.ToString("N0") $</td>
+                                <td>@item.Quantity</td>
+                                <td>@((item.UnitPrice * item.Quantity).ToString("N0")) $</td>
+                            </tr>
+                        }
+                    </tbody>
+                    <tfoot>
+                        <tr>
+                            <td colspan="3" class="text-end"><strong>Subtotal:</strong></td>
+                            <td>@((Model.TotalAmount - Model.ShippingFee).ToString("N0")) $</td>
+                        </tr>
+                        <tr>
+                            <td colspan="3" class="text-end"><strong>Shipping:</strong></td>
+                            <td>@Model.ShippingFee.ToString("N0") $</td>
+                        </tr>
+                        <tr>
+                            <td colspan="3" class="text-end"><strong>Total:</strong></td>
+                            <td><strong>@Model.TotalAmount.ToString("N0") $</strong></td>
+                        </tr>
+                    </tfoot>
+                </table>
+            </div>
+
+            @if (!string.IsNullOrEmpty(Model.Notes))
+            {
+                <div class="mt-4">
+                    <h6>Notes</h6>
+                    <p>@Model.Notes</p>
+                </div>
+            }
+
+            <div class="mt-4 text-end">
+                <a href="@Url.Action("Index", "Order")" class="btn btn-outline-secondary">
+                    <i class="fas fa-arrow-left"></i> Back to Orders
+                </a>
+                
+                @if (Model.Status == sis6s.Models.OrderStatus.Pending)
+                {
+                    <a href="@Url.Action("ProcessPayment", "Payment", new { orderId = Model.Id })" class="btn btn-primary">
+                        <i class="fas fa-credit-card"></i> Pay Now
+                    </a>
+                    <a href="@Url.Action("CancelOrder", "Order", new { id = Model.Id })" class="btn btn-outline-danger" onclick="return confirm('Are you sure you want to cancel this order?')">
+                        <i class="fas fa-times"></i> Cancel Order
+                    </a>
+                }
+            </div>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    <script>
+        // Add any JavaScript for interactions
+    </script>
+} 

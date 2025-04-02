@@ -1,0 +1,72 @@
+﻿@model sis6s.Models.Category
+
+@{
+    ViewData["Title"] = "Delete Category";
+    Layout = "~/Areas/Admin/Views/Shared/_layoutAdmin.cshtml";
+}
+
+<div class="container-fluid px-4">
+    <h1 class="mt-4">@ViewData["Title"]</h1>
+    <ol class="breadcrumb mb-4">
+        <li class="breadcrumb-item"><a asp-area="Admin" asp-controller="Home" asp-action="Index">Home</a></li>
+        <li class="breadcrumb-item"><a asp-action="Index">Category List</a></li>
+        <li class="breadcrumb-item active">Delete Category</li>
+    </ol>
+    
+    <div class="row">
+        <div class="col-lg-6">
+            <div class="card mb-4 border-danger">
+                <div class="card-header bg-danger text-white">
+                    <i class="fas fa-exclamation-triangle me-1"></i>
+                    Confirm Category Deletion
+                </div>
+                <div class="card-body">
+                    <div class="mb-4">
+                        <h4>@Model.Name</h4>
+                        <p><strong>ID:</strong> @Model.Id</p>
+                        <p><strong>Number of products in this category:</strong> <span class="badge bg-info">@(Model.Products?.Count ?? 0)</span></p>
+                    </div>
+                    
+                    <div class="alert alert-danger">
+                        <i class="fas fa-exclamation-circle me-2"></i>
+                        <strong>Warning:</strong> Deleting this category will affect all products belonging to it. Are you sure you want to delete?
+                    </div>
+                    
+                    <form asp-action="Delete" method="post">
+                        <input type="hidden" asp-for="Id" />
+                        <div class="d-flex justify-content-between mt-4">
+                            <a asp-action="Index" class="btn btn-secondary">
+                                <i class="fas fa-arrow-left me-1"></i> Back
+                            </a>
+                            <button type="submit" class="btn btn-danger">
+                                <i class="fas fa-trash me-1"></i> Confirm Delete
+                            </button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+        
+        <div class="col-lg-6">
+            <div class="card mb-4">
+                <div class="card-header">
+                    <i class="fas fa-info-circle me-1"></i>
+                    Additional Information
+                </div>
+                <div class="card-body">
+                    <h6>This action will affect:</h6>
+                    <ul>
+                        <li>Products belonging to this category will no longer have a category</li>
+                        <li>The category will be permanently removed from the system</li>
+                        <li>Category data cannot be recovered after deletion</li>
+                    </ul>
+                    
+                    <div class="alert alert-warning mt-3">
+                        <i class="fas fa-lightbulb me-2"></i>
+                        <strong>Tip:</strong> Instead of deleting, you can edit the category name if you only want to change the information.
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>

@@ -1,0 +1,288 @@
+@model sis6s.Models.Order
+
+@{
+    ViewData["Title"] = "Edit Order";
+    Layout = "~/Areas/Admin/Views/Shared/_layoutAdmin.cshtml";
+}
+
+<div class="container-fluid px-4">
+    <h1 class="mt-4">Edit Order</h1>
+    <ol class="breadcrumb mb-4">
+        <li class="breadcrumb-item"><a href="/Admin">Home</a></li>
+        <li class="breadcrumb-item"><a href="/Admin/OrderManagement">Order Management</a></li>
+        <li class="breadcrumb-item active">Edit Order #@Model.Id</li>
+    </ol>
+
+    <div class="card mb-4">
+        <div class="card-header">
+            <div class="d-flex justify-content-between align-items-center">
+                <div><i class="fas fa-edit me-1"></i> Order Information</div>
+                <div>
+                    <a asp-action="Index" class="btn btn-outline-secondary">Back to List</a>
+                </div>
+            </div>
+        </div>
+        <div class="card-body">
+            <div class="row">
+                <div class="col-md-6">
+                    <div class="card mb-3">
+                        <div class="card-header bg-primary text-white">
+                            <i class="fas fa-user me-1"></i> Customer Information
+                        </div>
+                        <div class="card-body">
+                            <div class="row mb-2">
+                                <div class="col-md-4 fw-bold">Full Name:</div>
+                                <div class="col-md-8">@Model.FullName</div>
+                            </div>
+                            <div class="row mb-2">
+                                <div class="col-md-4 fw-bold">Phone Number:</div>
+                                <div class="col-md-8">@Model.PhoneNumber</div>
+                            </div>
+                            <div class="row mb-2">
+                                <div class="col-md-4 fw-bold">Email:</div>
+                                <div class="col-md-8">@Model.Email</div>
+                            </div>
+                            <div class="row mb-2">
+                                <div class="col-md-4 fw-bold">Address:</div>
+                                <div class="col-md-8">@Model.Address</div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-md-6">
+                    <div class="card mb-3">
+                        <div class="card-header bg-info text-white">
+                            <i class="fas fa-info-circle me-1"></i> Order Details
+                        </div>
+                        <div class="card-body">
+                            <div class="row mb-2">
+                                <div class="col-md-4 fw-bold">Order ID:</div>
+                                <div class="col-md-8">#@Model.Id</div>
+                            </div>
+                            <div class="row mb-2">
+                                <div class="col-md-4 fw-bold">Order Date:</div>
+                                <div class="col-md-8">@Model.OrderDate.ToString("dd/MM/yyyy HH:mm")</div>
+                            </div>
+                            <div class="row mb-2">
+                                <div class="col-md-4 fw-bold">Total Amount:</div>
+                                <div class="col-md-8">@Model.TotalAmount.ToString("N0") $</div>
+                            </div>
+                            <div class="row mb-2">
+                                <div class="col-md-4 fw-bold">Status:</div>
+                                <div class="col-md-8">
+                                    <form asp-action="UpdateStatus" method="post">
+                                        <input type="hidden" name="id" value="@Model.Id" />
+                                        <div class="input-group">
+                                            <select name="status" class="form-select" id="orderStatus">
+                                                <option value="@sis6s.Models.OrderStatus.Processing">Processing</option>
+                                                <option value="@sis6s.Models.OrderStatus.Shipped">Shipping</option>
+                                                <option value="@sis6s.Models.OrderStatus.Delivered">Delivered</option>
+                                                <option value="@sis6s.Models.OrderStatus.Cancelled">Cancelled</option>
+                                            </select>
+                                            <button type="submit" class="btn btn-primary">Update</button>
+                                        </div>
+                                    </form>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="card mb-3">
+                <div class="card-header bg-success text-white">
+                    <i class="fas fa-shopping-cart me-1"></i> Order Items
+                </div>
+                <div class="card-body">
+                    <table class="table table-bordered table-striped">
+                        <thead>
+                            <tr>
+                                <th>Product</th>
+                                <th width="120">Price</th>
+                                <th width="100">Quantity</th>
+                                <th width="150">Total</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            @foreach (var item in Model.OrderItems)
+                            {
+                                <tr>
+                                    <td>
+                                        <div class="d-flex align-items-center">
+                                            @if (!string.IsNullOrEmpty(item.Product.Image))
+                                            {
+                                                <img src="@item.Product.Image" style="width: 50px; height: 50px; object-fit: cover;" class="me-2" />
+                                            }
+                                            else
+                                            {
+                                                <img src="/images/no-image.png" style="width: 50px; height: 50px; object-fit: cover;" class="me-2" />
+                                            }
+                                            <div>
+                                                <div class="fw-bold">@item.Product.Name</div>
+                                                <small class="text-muted">@item.Product.Category.Name</small>
+                                            </div>
+                                        </div>
+                                    </td>
+                                    <td>@item.UnitPrice.ToString("N0") $</td>
+                                    <td>@item.Quantity</td>
+                                    <td>@((item.UnitPrice * item.Quantity).ToString("N0")) $</td>
+                                </tr>
+                            }
+                        </tbody>
+                        <tfoot>
+                            <tr>
+                                <td colspan="3" class="text-end fw-bold">Subtotal:</td>
+                                <td class="fw-bold">@Model.TotalAmount.ToString("N0") $</td>
+                            </tr>
+                            <tr>
+                                <td colspan="3" class="text-end fw-bold">Shipping:</td>
+                                <td class="fw-bold">0 $</td>
+                            </tr>
+                            <tr>
+                                <td colspan="3" class="text-end fw-bold">Total:</td>
+                                <td class="fw-bold">@Model.TotalAmount.ToString("N0") $</td>
+                            </tr>
+                        </tfoot>
+                    </table>
+                </div>
+            </div>
+            
+            <div class="card mb-3">
+                <div class="card-header bg-warning text-dark">
+                    <i class="fas fa-history me-1"></i> Order History
+                </div>
+                <div class="card-body">
+                    <div class="timeline">
+                        <div class="timeline-item">
+                            <div class="timeline-point timeline-point-success"></div>
+                            <div class="timeline-event">
+                                <div class="timeline-heading">
+                                    <h6>Order Created</h6>
+                                </div>
+                                <div class="timeline-body">
+                                    <p>Order was created on @Model.OrderDate.ToString("dd/MM/yyyy HH:mm")</p>
+                                </div>
+                            </div>
+                        </div>
+                        
+                                    @if (Model.Status >= sis6s.Models.OrderStatus.Processing)
+                        {
+                            <div class="timeline-item">
+                                <div class="timeline-point timeline-point-info"></div>
+                                <div class="timeline-event">
+                                    <div class="timeline-heading">
+                                        <h6>Order Processing</h6>
+                                    </div>
+                                    <div class="timeline-body">
+                                        <p>Order is being processed</p>
+                                    </div>
+                                </div>
+                            </div>
+                        }
+                        
+                        @if (Model.Status >= sis6s.Models.OrderStatus.Shipped)
+                        {
+                            <div class="timeline-item">
+                                <div class="timeline-point timeline-point-primary"></div>
+                                <div class="timeline-event">
+                                    <div class="timeline-heading">
+                                        <h6>Order Shipping</h6>
+                                    </div>
+                                    <div class="timeline-body">
+                                        <p>Order is being shipped to customer</p>
+                                    </div>
+                                </div>
+                            </div>
+                        }
+                        
+                        @if (Model.Status == sis6s.Models.OrderStatus.Delivered)
+                        {
+                            <div class="timeline-item">
+                                <div class="timeline-point timeline-point-success"></div>
+                                <div class="timeline-event">
+                                    <div class="timeline-heading">
+                                        <h6>Order Delivered</h6>
+                                    </div>
+                                    <div class="timeline-body">
+                                        <p>Order has been delivered to customer</p>
+                                    </div>
+                                </div>
+                            </div>
+                        }
+                        
+                            @if (Model.Status == sis6s.Models.OrderStatus.Cancelled)
+                        {
+                            <div class="timeline-item">
+                                <div class="timeline-point timeline-point-danger"></div>
+                                <div class="timeline-event">
+                                    <div class="timeline-heading">
+                                        <h6>Order Cancelled</h6>
+                                    </div>
+                                    <div class="timeline-body">
+                                        <p>Order has been cancelled</p>
+                                    </div>
+                                </div>
+                            </div>
+                        }
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<style>
+    .timeline {
+        position: relative;
+        padding: 20px 0;
+    }
+    
+    .timeline::before {
+        content: '';
+        position: absolute;
+        top: 0;
+        bottom: 0;
+        left: 15px;
+        width: 2px;
+        background: #ccc;
+    }
+    
+    .timeline-item {
+        position: relative;
+        margin-bottom: 30px;
+    }
+    
+    .timeline-point {
+        position: absolute;
+        left: 15px;
+        width: 12px;
+        height: 12px;
+        border-radius: 50%;
+        transform: translateX(-50%);
+    }
+    
+    .timeline-point-success { background-color: #28a745; }
+    .timeline-point-info { background-color: #17a2b8; }
+    .timeline-point-primary { background-color: #007bff; }
+    .timeline-point-danger { background-color: #dc3545; }
+    
+    .timeline-event {
+        margin-left: 30px;
+        padding: 10px 15px;
+        border-radius: 5px;
+        background: #f8f9fa;
+        border-left: 3px solid #ddd;
+    }
+    
+    .timeline-event h6 {
+        margin-bottom: 5px;
+    }
+</style>
+
+@section Scripts {
+    <script>
+        $(document).ready(function() {
+            document.getElementById('orderStatus').value = '@((int)Model.Status)';
+        });
+    </script>
+} 

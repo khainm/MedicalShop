@@ -1,0 +1,105 @@
+@model IEnumerable<sis6s.Models.Order>
+
+@{
+    ViewData["Title"] = "Order List";
+    Layout = "~/Areas/Admin/Views/Shared/_layoutAdmin.cshtml";
+}
+
+<div class="container-fluid px-4">
+    <h1 class="mt-4">Order Management</h1>
+    <ol class="breadcrumb mb-4">
+        <li class="breadcrumb-item"><a href="/Admin">Home</a></li>
+        <li class="breadcrumb-item active">Order List</li>
+    </ol>
+
+    <div class="card mb-4">
+        <div class="card-header">
+            <div class="d-flex justify-content-between align-items-center">
+                <div><i class="fas fa-table me-1"></i> Order List</div>
+                <div class="btn-group">
+                    <a asp-action="Index" class="btn btn-outline-primary">All</a>
+                    <a asp-action="Pending" class="btn btn-outline-warning">Pending</a>
+                    <a asp-action="Processing" class="btn btn-outline-info">Processing</a>
+                    <a asp-action="Shipping" class="btn btn-outline-primary">Shipping</a>
+                    <a asp-action="Delivered" class="btn btn-outline-success">Delivered</a>
+                    <a asp-action="Cancelled" class="btn btn-outline-danger">Cancelled</a>
+                </div>
+            </div>
+        </div>
+        <div class="card-body">
+            <table id="datatablesSimple" class="table table-bordered table-striped">
+                <thead>
+                    <tr>
+                        <th>Order ID</th>
+                        <th>Customer</th>
+                        <th>Date</th>
+                        <th>Amount</th>
+                        <th>Status</th>
+                        <th>Actions</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @foreach (var item in Model)
+                    {
+                        <tr>
+                            <td>#@item.Id</td>
+                            <td>@item.User.FullName</td>
+                            <td>@item.OrderDate.ToString("dd/MM/yyyy HH:mm")</td>
+                            <td>@item.TotalAmount.ToString("N0") $</td>
+                            <td>
+                                @{
+                                    string statusClass = item.Status switch
+                                    {
+                                        sis6s.Models.OrderStatus.Pending => "bg-warning",
+                                        sis6s.Models.OrderStatus.Processing => "bg-info", 
+                                        sis6s.Models.OrderStatus.Shipped => "bg-primary",
+                                        sis6s.Models.OrderStatus.Delivered => "bg-success",
+                                        _ => "bg-danger"
+                                    };
+                                    string statusText = item.Status switch
+                                    {
+                                        sis6s.Models.OrderStatus.Pending => "Pending",
+                                        sis6s.Models.OrderStatus.Processing => "Processing",
+                                        sis6s.Models.OrderStatus.Shipped => "Shipping",
+                                        sis6s.Models.OrderStatus.Delivered => "Delivered",
+                                        _ => "Cancelled"
+                                    };
+                                }
+                                <span class="badge @statusClass">@statusText</span>
+                            </td>
+                            <td>
+                                <a asp-action="Details" asp-route-id="@item.Id" class="btn btn-sm btn-info">
+                                    <i class="fas fa-info-circle"></i> Details
+                                </a>
+                                <a asp-action="Edit" asp-route-id="@item.Id" class="btn btn-sm btn-primary">
+                                    <i class="fas fa-edit"></i> Edit
+                                </a>
+                            </td>
+                        </tr>
+                    }
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    <script>
+        $(document).ready(function () {
+            $('#datatablesSimple').DataTable({
+                responsive: true,
+                language: {
+                    search: "Search:",
+                    lengthMenu: "Show _MENU_ entries per page",
+                    info: "Showing _START_ to _END_ of _TOTAL_ entries",
+                    paginate: {
+                        first: "First",
+                        last: "Last", 
+                        next: "Next",
+                        previous: "Previous"
+                    }
+                }
+            });
+        });
+    </script>
+}

@@ -1,0 +1,358 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>@ViewData["Title"] - Admin Dashboard</title>
+    <link rel="stylesheet" href="~/lib/bootstrap/dist/css/bootstrap.min.css" />
+    <link rel="stylesheet" href="~/css/site.css" asp-append-version="true" />
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" />
+    <link rel="stylesheet" href="https://cdn.datatables.net/1.13.4/css/dataTables.bootstrap5.min.css" />
+    <link href="https://fonts.googleapis.com/css2?family=Nunito:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+        body {
+            font-family: 'Nunito', sans-serif;
+            background-color: #f9fafd;
+            overflow-x: hidden;
+        }
+        
+        .wrapper {
+            display: flex;
+            width: 100%;
+            min-height: 100vh;
+        }
+        
+        /* Sidebar */
+        #sidebar {
+            width: 260px;
+            position: fixed;
+            top: 0;
+            left: 0;
+            height: 100vh;
+            z-index: 999;
+            background: white;
+            box-shadow: 2px 0 10px rgba(0,0,0,0.05);
+            transition: all 0.3s;
+        }
+        
+        #sidebar.active {
+            margin-left: -260px;
+        }
+        
+        #sidebar .sidebar-header {
+            padding: 20px;
+            background: white;
+            border-bottom: 1px solid #eee;
+        }
+        
+        #sidebar ul.components {
+            padding: 0;
+            border-bottom: 1px solid #eee;
+        }
+        
+        #sidebar ul li a {
+            padding: 12px 20px;
+            display: flex;
+            align-items: center;
+            color: #5e636e;
+            text-decoration: none;
+        }
+        
+        #sidebar ul li a:hover {
+            background: #f8f9fa;
+        }
+        
+        #sidebar ul li.active > a {
+            background: #f0f2f5;
+            color: #3c7bda;
+        }
+        
+        #sidebar ul li a i {
+            width: 20px;
+            margin-right: 10px;
+        }
+        
+        /* Content */
+        #content {
+            width: calc(100% - 260px);
+            min-height: 100vh;
+            transition: all 0.3s;
+            position: absolute;
+            top: 0;
+            right: 0;
+            display: flex;
+            flex-direction: column;
+        }
+        
+        #content.active {
+            width: 100%;
+        }
+        
+        .navbar {
+            background: white;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.05);
+        }
+        
+        .content {
+            padding: 20px;
+            flex: 1;
+        }
+        
+        .footer {
+            background: white;
+            padding: 15px 20px;
+            border-top: 1px solid #eee;
+        }
+        
+        /* Responsive */
+        @@media (max-width: 768px) {
+            #sidebar {
+                margin-left: -260px;
+            }
+            
+            #sidebar.active {
+                margin-left: 0;
+            }
+            
+            #content {
+                width: 100%;
+            }
+            
+            #content.active {
+                width: calc(100% - 260px);
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="wrapper">
+        <!-- Sidebar -->
+        <nav id="sidebar">
+            <div class="sidebar-header">
+                <h3>Admin Dashboard</h3>
+            </div>
+
+            <ul class="list-unstyled components">
+                <li class="@(ViewContext.RouteData.Values["Action"].ToString() == "Index" ? "active" : "")">
+                    <a asp-area="Admin" asp-controller="Home" asp-action="Index">
+                        <i class="fas fa-tachometer-alt"></i>
+                        <span>Dashboard</span>
+                    </a>
+                </li>
+
+                <li class="@(ViewContext.RouteData.Values["Controller"].ToString() == "UserManagement" ? "active" : "")">
+                    <a href="#userSubmenu" data-bs-toggle="collapse" class="dropdown-toggle">
+                        <i class="fas fa-users"></i>
+                        <span>User Management</span>
+                        <i class="fas fa-chevron-down ms-auto"></i>
+                    </a>
+                    <ul class="collapse list-unstyled" id="userSubmenu">
+                        <li>
+                            <a asp-area="Admin" asp-controller="UserManagement" asp-action="Index">User List</a>
+                    </li>
+                    <li>
+                            <a asp-area="Admin" asp-controller="UserManagement" asp-action="Create">Add User</a>
+                    </li>
+                </ul>
+                </li>
+
+                <li class="@(ViewContext.RouteData.Values["Controller"].ToString() == "ProductManagement" ? "active" : "")">
+                    <a href="#productSubmenu" data-bs-toggle="collapse" class="dropdown-toggle">
+                        <i class="fas fa-box"></i>
+                        <span>Product Management</span>
+                        <i class="fas fa-chevron-down ms-auto"></i>
+                    </a>
+                    <ul class="collapse list-unstyled" id="productSubmenu">
+                        <li>
+                            <a asp-area="Admin" asp-controller="ProductManagement" asp-action="Index">Product List</a>
+                        </li>
+                        <li>
+                            <a asp-area="Admin" asp-controller="ProductManagement" asp-action="Create">Add Product</a>
+                        </li>
+                        <li>
+                            <a asp-area="Admin" asp-controller="CategoryManagement" asp-action="Index">Category Management</a>
+                        </li>
+                        <li>
+                            <a asp-area="Admin" asp-controller="Inventory" asp-action="Index">Inventory Management</a>
+            </li>
+        </ul>
+                </li>
+
+                <li class="@(ViewContext.RouteData.Values["Controller"].ToString() == "OrderManagement" ? "active" : "")">
+                    <a href="#orderSubmenu" data-bs-toggle="collapse" class="dropdown-toggle">
+                        <i class="fas fa-shopping-cart"></i>
+                        <span>Order Management</span>
+                        <i class="fas fa-chevron-down ms-auto"></i>
+                    </a>
+                    <ul class="collapse list-unstyled" id="orderSubmenu">
+                        <li>
+                            <a asp-area="Admin" asp-controller="OrderManagement" asp-action="Index">All Orders</a>
+                        </li>
+                        <li>
+                            <a asp-area="Admin" asp-controller="OrderManagement" asp-action="Pending">Pending</a>
+                        </li>
+                        <li>
+                            <a asp-area="Admin" asp-controller="OrderManagement" asp-action="Processing">Processing</a>
+                        </li>
+                        <li>
+                            <a asp-area="Admin" asp-controller="OrderManagement" asp-action="Shipping">Shipping</a>
+                        </li>
+                        <li>
+                            <a asp-area="Admin" asp-controller="OrderManagement" asp-action="Delivered">Delivered</a>
+                        </li>
+                        <li>
+                            <a asp-area="Admin" asp-controller="OrderManagement" asp-action="Cancelled">Cancelled</a>
+                        </li>
+                    </ul>
+                </li>
+
+                <li class="@(ViewContext.RouteData.Values["Controller"].ToString() == "Promotion" ? "active" : "")">
+                    <a href="#marketingSubmenu" data-bs-toggle="collapse" class="dropdown-toggle">
+                        <i class="fas fa-bullhorn"></i>
+                        <span>Marketing</span>
+                        <i class="fas fa-chevron-down ms-auto"></i>
+                    </a>
+                    <ul class="collapse list-unstyled" id="marketingSubmenu">
+                        <li>
+                            <a asp-area="Admin" asp-controller="Promotion" asp-action="Index">Promotions</a>
+                        </li>
+                        <li>
+                            <a asp-area="Admin" asp-controller="Coupon" asp-action="Index">Coupons</a>
+                        </li>
+                    </ul>
+                </li>
+
+                <li class="@(ViewContext.RouteData.Values["Controller"].ToString() == "Report" ? "active" : "")">
+                    <a href="#reportSubmenu" data-bs-toggle="collapse" class="dropdown-toggle">
+                        <i class="fas fa-chart-line"></i>
+                        <span>Reports & Statistics</span>
+                        <i class="fas fa-chevron-down ms-auto"></i>
+                    </a>
+                    <ul class="collapse list-unstyled" id="reportSubmenu">
+                        <li>
+                            <a asp-area="Admin" asp-controller="Report" asp-action="Revenue">Revenue</a>
+                        </li>
+                        <li>
+                            <a asp-area="Admin" asp-controller="Report" asp-action="BestSellers">Best Sellers</a>
+                        </li>
+                        <li>
+                            <a asp-area="Admin" asp-controller="Report" asp-action="PotentialCustomers">Potential Customers</a>
+                        </li>
+                    </ul>
+                </li>
+
+                <li class="@(ViewContext.RouteData.Values["Controller"].ToString() == "Review" ? "active" : "")">
+                    <a href="#contentSubmenu" data-bs-toggle="collapse" class="dropdown-toggle">
+                        <i class="fas fa-edit"></i>
+                        <span>Content Management</span>
+                        <i class="fas fa-chevron-down ms-auto"></i>
+                    </a>
+                    <ul class="collapse list-unstyled" id="contentSubmenu">
+                        <li>
+                            <a asp-area="Admin" asp-controller="Review" asp-action="Index">Review Management</a>
+                        </li>
+                        <li>
+                            <a asp-area="Admin" asp-controller="Policy" asp-action="Index">Policies</a>
+                        </li>
+                    </ul>
+                </li>
+
+                <li class="@(ViewContext.RouteData.Values["Controller"].ToString() == "Settings" ? "active" : "")">
+                    <a asp-area="Admin" asp-controller="Settings" asp-action="Index">
+                        <i class="fas fa-cogs"></i>
+                        <span>Settings</span>
+                    </a>
+                </li>
+
+                <li class="@(ViewContext.RouteData.Values["Controller"].ToString() == "SystemLog" ? "active" : "")">
+                    <a asp-area="Admin" asp-controller="SystemLog" asp-action="Index">
+                        <i class="fas fa-history"></i>
+                        <span>System Logs</span>
+                    </a>
+                </li>
+            </ul>
+
+            <div class="sidebar-footer p-3 border-top">
+                <div class="user-info mb-2">
+                    <i class="fas fa-user-circle"></i>
+                    <span>@User.Identity.Name</span>
+                </div>
+                <form asp-area="Identity" asp-page="/Account/Logout" asp-route-returnUrl="@Url.Action("Index", "Home", new { area = "" })">
+                    <button type="submit" class="btn btn-link px-0">
+                        <i class="fas fa-sign-out-alt"></i>
+                        <span>Logout</span>
+                    </button>
+                </form>
+            </div>
+        </nav>
+
+        <!-- Page Content -->
+        <div id="content">
+            <!-- Top Navigation -->
+            <nav class="navbar navbar-expand-lg navbar-light">
+                <div class="container-fluid">
+                    <button type="button" id="sidebarCollapse" class="btn btn-light">
+                        <i class="fas fa-bars"></i>
+                    </button>
+                    <div class="ms-auto">
+                        <div class="input-group">
+                            <input class="form-control" type="text" placeholder="Search..." aria-label="Search">
+                            <button class="btn btn-primary" type="button">
+                                <i class="fas fa-search"></i>
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </nav>
+
+            <!-- Main Content -->
+            <main class="content">
+                <div class="container-fluid">
+                    @RenderBody()
+                </div>
+            </main>
+
+            <!-- Footer -->
+            <footer class="footer">
+                <div class="container-fluid">
+                    <div class="d-flex align-items-center justify-content-between">
+                        <div class="text-muted">Copyright &copy; Trung Pro Shop 2023</div>
+                        <div>
+                            <a href="#">Privacy Policy</a>
+                            &middot;
+                            <a href="#">Terms &amp; Conditions</a>
+                        </div>
+                    </div>
+                </div>
+            </footer>
+        </div>
+    </div>
+
+    <script src="~/lib/jquery/dist/jquery.min.js"></script>
+    <script src="~/lib/bootstrap/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="https://cdn.datatables.net/1.13.4/js/jquery.dataTables.min.js"></script>
+    <script src="https://cdn.datatables.net/1.13.4/js/dataTables.bootstrap5.min.js"></script>
+    <script src="~/js/site.js" asp-append-version="true"></script>
+
+    <script>
+        $(document).ready(function () {
+            // Toggle Sidebar
+            $('#sidebarCollapse').on('click', function () {
+                $('#sidebar, #content').toggleClass('active');
+            });
+
+            // Initialize DataTables
+            $('table.dataTable').DataTable({
+                language: {
+                    url: '//cdn.datatables.net/plug-ins/1.13.4/i18n/en.json'
+                }
+            });
+
+            // Auto-expand active submenu
+            $('.active').closest('.collapse').addClass('show');
+        });
+    </script>
+
+    @await RenderSectionAsync("Scripts", required: false)
+</body>
+</html>

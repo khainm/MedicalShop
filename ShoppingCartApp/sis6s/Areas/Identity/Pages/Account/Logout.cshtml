@@ -1,0 +1,45 @@
+﻿@page
+@model LogoutModel
+@using sis6s.Areas.Identity.Pages.Account
+@{
+    ViewData["Title"] = "Logout";
+}
+
+<div class="container py-5">
+    <div class="row justify-content-center">
+        <div class="col-md-8 col-lg-6">
+            <div class="card shadow-lg border-0 rounded-lg">
+                <div class="card-header bg-primary text-white text-center py-4">
+                    <h2 class="font-weight-bold mb-0">@ViewData["Title"]</h2>
+                </div>
+                <div class="card-body p-5 text-center">
+                    <h5 class="mb-4">Are you sure you want to logout?</h5>
+                    <form class="form-inline" asp-area="Identity" asp-page="/Account/Logout" asp-route-returnUrl="@Url.Page("/", new { area = "" })" method="post">
+                        <div class="d-grid gap-2">
+                            <button type="submit" class="btn btn-danger btn-lg">
+                                <i class="fas fa-sign-out-alt me-2"></i>Logout
+                            </button>
+                            <a href="/" class="btn btn-outline-secondary btn-lg">
+                                <i class="fas fa-arrow-left me-2"></i>Go Back
+                            </a>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    <script>
+        // Automatically logout after 10 seconds if no action is taken
+        let secondsRemaining = 10;
+        const countdownInterval = setInterval(() => {
+            secondsRemaining--;
+            if (secondsRemaining <= 0) {
+                clearInterval(countdownInterval);
+                document.querySelector('form').submit();
+            }
+        }, 1000);
+    </script>
+}

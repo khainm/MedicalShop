@@ -1,0 +1,114 @@
+﻿@model sis6s.Models.Product
+
+@{
+    ViewData["Title"] = "Edit Product";
+    Layout = "~/Areas/Admin/Views/Shared/_layoutAdmin.cshtml";
+}
+
+<div class="container-fluid px-4">
+    <h1 class="mt-4">@ViewData["Title"]</h1>
+    <ol class="breadcrumb mb-4">
+        <li class="breadcrumb-item"><a asp-area="Admin" asp-controller="Home" asp-action="Index">Home</a></li>
+        <li class="breadcrumb-item"><a asp-action="Index">Product List</a></li>
+        <li class="breadcrumb-item active">Edit Product</li>
+    </ol>
+    
+    <div class="row">
+        <div class="col-xl-8">
+            <div class="card mb-4">
+                <div class="card-header">
+                    <i class="fas fa-edit me-1"></i>
+                    Edit Product Information
+                </div>
+                <div class="card-body">
+                    <form asp-action="Edit" method="post" enctype="multipart/form-data">
+                        <input type="hidden" asp-for="Id" />
+                        <input type="hidden" name="OldImage" value="@Model.Image" />
+                        
+                        <div class="row mb-3">
+                            <div class="col-md-6">
+                                <div class="form-floating mb-3">
+                                    <input asp-for="Name" class="form-control" id="inputProductName" placeholder="Product name">
+                                    <label for="inputProductName">Product Name</label>
+                                    <span asp-validation-for="Name" class="text-danger"></span>
+                                </div>
+                            </div>
+                            <div class="col-md-6">
+                                <div class="form-floating mb-3">
+                                    <input asp-for="Price" class="form-control" id="inputPrice" placeholder="Price">
+                                    <label for="inputPrice">Price</label>
+                                    <span asp-validation-for="Price" class="text-danger"></span>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <div class="form-floating mb-3">
+                            <textarea asp-for="Description" class="form-control" style="height: 100px;" id="inputDescription" placeholder="Description"></textarea>
+                            <label for="inputDescription">Product Description</label>
+                            <span asp-validation-for="Description" class="text-danger"></span>
+                        </div>
+                        
+                        <div class="mb-3">
+                            <label class="form-label">Current Image:</label>
+                            <div class="mb-2">
+                                @if (!string.IsNullOrEmpty(Model.Image))
+                                {
+                                    <img src="~/images/@Model.Image" class="img-thumbnail" style="max-width: 150px;" />
+                                }
+                                else
+                                {
+                                    <span class="text-muted">No image</span>
+                                }
+                            </div>
+                        </div>
+
+                        <div class="mb-3">
+                            <label class="form-label">Change Image:</label>
+                            <input type="file" name="fileHinhAnh" class="form-control" />
+                            <div class="form-text">Leave blank if you don't want to change the image.</div>
+                        </div>
+                        
+                        <div class="form-floating mb-3">
+                            <select asp-for="CategoryId" class="form-select" id="inputCategory" asp-items="ViewBag.DanhSachTheLoai"></select>
+                            <label for="inputCategory">Category</label>
+                        </div>
+                        
+                        <div class="mt-4 d-flex justify-content-between">
+                            <a asp-action="Index" class="btn btn-secondary">
+                                <i class="fas fa-arrow-left me-1"></i> Back
+                            </a>
+                            <button type="submit" class="btn btn-success">
+                                <i class="fas fa-save me-1"></i> Save Changes
+                            </button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+        <div class="col-xl-4">
+            <div class="card mb-4">
+                <div class="card-header">
+                    <i class="fas fa-info-circle me-1"></i>
+                    Product Information
+                </div>
+                <div class="card-body">
+                    <div class="small mb-2">ID: <strong>@Model.Id</strong></div>
+                    <div class="small mb-2">Created: <strong>@DateTime.Now.ToString("dd/MM/yyyy HH:mm")</strong></div>
+                    
+                    <hr class="my-3" />
+                    
+                    <h6>Notes:</h6>
+                    <ul class="small">
+                        <li>Fill in all required information</li>
+                        <li>Product images should have uniform dimensions</li>
+                        <li>Price should be a whole number (no decimals)</li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    @{await Html.RenderPartialAsync("_ValidationScriptsPartial");}
+}

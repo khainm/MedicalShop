@@ -1,0 +1,166 @@
+@model sis6s.Models.Order
+@{
+    ViewData["Title"] = "Order Payment #" + Model.Id;
+}
+
+<div class="container py-4">
+    <nav aria-label="breadcrumb">
+        <ol class="breadcrumb">
+            <li class="breadcrumb-item"><a href="@Url.Action("Index", "Home")">Home</a></li>
+            <li class="breadcrumb-item"><a href="@Url.Action("Index", "Order")">My Orders</a></li>
+            <li class="breadcrumb-item active" aria-current="page">Order Payment #@Model.Id</li>
+        </ol>
+    </nav>
+
+    <div class="row">
+        <div class="col-md-8">
+            <div class="card mb-4">
+                <div class="card-header bg-light">
+                    <h5 class="mb-0">Order Information</h5>
+                </div>
+                <div class="card-body">
+                    <div class="table-responsive">
+                        <table class="table">
+                            <thead>
+                                <tr>
+                                    <th>Product</th>
+                                    <th>Price</th>
+                                    <th>Quantity</th>
+                                    <th>Total</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                @foreach (var item in Model.OrderItems)
+                                {
+                                    <tr>
+                                        <td>
+                                            <div class="d-flex align-items-center">
+                                                <img src="@item.Product.Image" alt="@item.Product.Name" style="width: 50px; height: 50px; object-fit: cover;" class="me-2">
+                                                <div>
+                                                    <h6 class="mb-0">@item.Product.Name</h6>
+                                                    <small class="text-muted">@item.Product.Description</small>
+                                                </div>
+                                            </div>
+                                        </td>
+                                        <td>@item.Product.Price.ToString("N0") $</td>
+                                        <td>@item.Quantity</td>
+                                        <td>@((item.Product.Price * item.Quantity).ToString("N0")) $</td>
+                                    </tr>
+                                }
+                            </tbody>
+                            <tfoot>
+                                <tr>
+                                    <td colspan="3" class="text-end"><strong>Total:</strong></td>
+                                    <td><strong>@Model.TotalAmount.ToString("N0") $</strong></td>
+                                </tr>
+                            </tfoot>
+                        </table>
+                    </div>
+                </div>
+            </div>
+
+            <div class="card">
+                <div class="card-header bg-light">
+                    <h5 class="mb-0">Shipping Information</h5>
+                </div>
+                <div class="card-body">
+                    <p class="mb-1"><strong>Address:</strong> @Model.Address</p>
+                    <p class="mb-1"><strong>Shipping Method:</strong> @Model.PaymentMethod</p>
+                    <p class="mb-1"><strong>Payment Method:</strong> @Model.PaymentMethod</p>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-md-4">
+            <div class="card mb-4">
+                <div class="card-header bg-light">
+                    <h5 class="mb-0">Summary</h5>
+                </div>
+                <div class="card-body">
+                    <div class="d-flex justify-content-between mb-2">
+                        <span>Subtotal</span>
+                        <span>@Model.TotalAmount.ToString("N0") $</span>
+                    </div>
+                    <div class="d-flex justify-content-between mb-2">
+                        <span>Shipping Fee</span>
+                        <span>Free</span>
+                    </div>
+                    <hr>
+                    <div class="d-flex justify-content-between">
+                        <strong>Total</strong>
+                        <strong class="text-primary">@Model.TotalAmount.ToString("N0") $</strong>
+                    </div>
+                </div>
+            </div>
+
+            <div class="card">
+                <div class="card-header bg-light">
+                    <h5 class="mb-0">Payment Method</h5>
+                </div>
+                <div class="card-body">
+                    <form asp-action="ProcessPayment" method="post">
+                        <input type="hidden" name="orderId" value="@Model.Id" />
+                        
+                        <div class="mb-3">
+                            <div class="form-check">
+                                <input class="form-check-input" type="radio" name="paymentMethod" value="CashOnDelivery" checked>
+                                <label class="form-check-label">
+                                    <i class="fas fa-money-bill-wave"></i> Cash On Delivery
+                                </label>
+                            </div>
+                        </div>
+
+                        <div class="mb-3">
+                            <div class="form-check">
+                                <input class="form-check-input" type="radio" name="paymentMethod" value="BankTransfer">
+                                <label class="form-check-label">
+                                    <i class="fas fa-university"></i> Bank Transfer
+                                </label>
+                            </div>
+                            <div id="bankInfo" class="mt-2" style="display: none;">
+                                <div class="alert alert-info">
+                                    <h6 class="mb-2">Bank Transfer Information:</h6>
+                                    <p class="mb-1"><strong>Bank:</strong> Vietcombank</p>
+                                    <p class="mb-1"><strong>Account Number:</strong> 123456789</p>
+                                    <p class="mb-1"><strong>Account Holder:</strong> PHARMACY STORE</p>
+                                    <p class="mb-0"><strong>Reference:</strong> ORDER@Model.Id</p>
+                                </div>
+                            </div>
+                        </div>
+
+                        <button type="submit" class="btn btn-primary w-100">
+                            <i class="fas fa-check"></i> Confirm Payment
+                        </button>
+                    </form>
+                </div>
+            </div>
+
+            <div class="card">
+                <div class="card-body">
+                    <h6 class="card-title">Store Policies</h6>
+                    <ul class="list-unstyled mb-0">
+                        <li><i class="fas fa-check text-success me-2"></i>Free shipping for orders over $25</li>
+                        <li><i class="fas fa-check text-success me-2"></i>Returns within 7 days</li>
+                        <li><i class="fas fa-check text-success me-2"></i>Cash on delivery available</li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    <script>
+        // Handle displaying bank information
+        document.querySelectorAll('input[name="paymentMethod"]').forEach(radio => {
+            radio.addEventListener('change', function() {
+                const bankInfo = document.getElementById('bankInfo');
+                if (this.value === 'BankTransfer') {
+                    bankInfo.style.display = 'block';
+                } else {
+                    bankInfo.style.display = 'none';
+                }
+            });
+        });
+    </script>
+} 

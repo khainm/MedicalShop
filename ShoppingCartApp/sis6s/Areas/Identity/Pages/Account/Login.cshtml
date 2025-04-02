@@ -1,0 +1,112 @@
+﻿@page
+@using sis6s.Areas.Identity.Pages.Account
+@model LoginModel
+
+@{
+    ViewData["Title"] = "Login";
+}
+
+<div class="container py-5">
+    <div class="row justify-content-center">
+        <div class="col-md-8 col-lg-6">
+            <div class="card shadow-lg border-0 rounded-lg">
+                <div class="card-header bg-primary text-white text-center py-4">
+                    <h2 class="font-weight-bold mb-0">@ViewData["Title"]</h2>
+                </div>
+                <div class="card-body p-5">
+                    <form id="account" method="post" class="needs-validation" novalidate>
+                        <div asp-validation-summary="ModelOnly" class="text-danger mb-4 alert alert-danger" role="alert"></div>
+                        
+                        <div class="form-floating mb-4">
+                            <input asp-for="Input.Email" class="form-control" autocomplete="username" aria-required="true" placeholder="name@example.com" />
+                            <label asp-for="Input.Email">Email</label>
+                            <span asp-validation-for="Input.Email" class="text-danger"></span>
+                        </div>
+                        
+                        <div class="form-floating mb-4">
+                            <input asp-for="Input.Password" class="form-control" autocomplete="current-password" aria-required="true" placeholder="password" />
+                            <label asp-for="Input.Password">Password</label>
+                            <span asp-validation-for="Input.Password" class="text-danger"></span>
+                        </div>
+                        
+                        <div class="form-check mb-4">
+                            <input class="form-check-input" asp-for="Input.RememberMe" />
+                            <label class="form-check-label" asp-for="Input.RememberMe">
+                                @Html.DisplayNameFor(m => m.Input.RememberMe)
+                            </label>
+                        </div>
+                        
+                        <div class="d-grid mb-4">
+                            <button id="login-submit" type="submit" class="btn btn-primary btn-lg">
+                                <i class="fas fa-sign-in-alt me-2"></i>Login
+                            </button>
+                        </div>
+                        
+                        <div class="d-flex justify-content-between">
+                            <p>
+                                <a id="forgot-password" asp-page="./ForgotPassword" class="text-decoration-none">Forgot password?</a>
+                            </p>
+                            <p>
+                                <a asp-page="./Register" asp-route-returnUrl="@Model.ReturnUrl" class="text-decoration-none">Register a new account</a>
+                            </p>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    <partial name="_ValidationScriptsPartial" />
+    
+    <script>
+        // Check if there are products in session storage when logging in
+        document.getElementById('account').addEventListener('submit', function(e) {
+            e.preventDefault();
+            
+            const formData = new FormData(this);
+            const formAction = this.action;
+            
+            fetch(formAction, {
+                method: 'POST',
+                body: formData
+            })
+            .then(response => {
+                if (response.redirected) {
+                    const productInfo = sessionStorage.getItem('pendingAddToCart');
+                    if (productInfo) {
+                        const product = JSON.parse(productInfo);
+                        // Add product to cart after login
+                        fetch('/User/Cart/AddProduct', {
+                            method: 'POST',
+                            headers: {
+                                'Content-Type': 'application/x-www-form-urlencoded',
+                            },
+                            body: new URLSearchParams({
+                                'productId': product.sanPhamId,
+                                'quantity': product.soLuong,
+                                'shippingAddress': product.diaChiGiaoHang,
+                                'shippingMethod': product.hinhThucGiaoHang
+                            })
+                        }).then(() => {
+                            sessionStorage.removeItem('pendingAddToCart');
+                            window.location.href = '/User/Cart';
+                        });
+                    } else {
+                        window.location.href = response.url;
+                    }
+                } else {
+                    response.text().then(html => {
+                        const parser = new DOMParser();
+                        const doc = parser.parseFromString(html, 'text/html');
+                        const validationSummary = doc.querySelector('.validation-summary-errors');
+                        if (validationSummary) {
+                            document.querySelector('[asp-validation-summary="ModelOnly"]').innerHTML = validationSummary.innerHTML;
+                        }
+                    });
+                }
+            });
+        });
+    </script>
+}
