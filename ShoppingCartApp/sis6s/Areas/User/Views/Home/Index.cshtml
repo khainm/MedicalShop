@@ -99,3 +99,117 @@
 @*         // Add any JavaScript for animations or interactions *@
 @*     </script> *@
 @* } *@
+
+@{
+    ViewData["Title"] = "Home";
+}
+
+<div class="container mt-4">
+    <!-- Search and Filter Section -->
+    <div class="row mb-4">
+        <div class="col-md-6">
+            <form method="get" action="@Url.Action("Index", "Home")" class="d-flex">
+                <input type="text" name="searchTerm" class="form-control search-bar me-2" 
+                       placeholder="Search products..." value="@ViewBag.CurrentSearch">
+                <button type="submit" class="btn btn-buy">
+                    <i class="fas fa-search"></i>
+                </button>
+            </form>
+        </div>
+        <div class="col-md-6">
+            <div class="d-flex justify-content-end">
+                <div class="me-3">
+                    <select class="form-select dropdown-sort" name="category" id="categoryFilter" 
+                            onchange="location = this.value;">
+                        <option value="@Url.Action("Index", "Home")">All Categories</option>
+                        @foreach (var category in ViewBag.Categories ?? new List<dynamic>())
+                        {
+                            <option value="@Url.Action("Index", "Home", new { categoryId = category.Id })"
+                                    @(ViewBag.SelectedCategory == category.Id ? "selected" : "")>
+                                @category.Name
+                            </option>
+                        }
+                    </select>
+                </div>
+                <div>
+                    <select class="form-select dropdown-sort" name="sort" id="sortOrder" 
+                            onchange="location = this.value;">
+                        <option value="@Url.Action("Index", "Home", new { sort = "name_asc" })"
+                                @(ViewBag.CurrentSort == "name_asc" ? "selected" : "")>
+                            Name (A-Z)
+                        </option>
+                        <option value="@Url.Action("Index", "Home", new { sort = "name_desc" })"
+                                @(ViewBag.CurrentSort == "name_desc" ? "selected" : "")>
+                            Name (Z-A)
+                        </option>
+                        <option value="@Url.Action("Index", "Home", new { sort = "price_asc" })"
+                                @(ViewBag.CurrentSort == "price_asc" ? "selected" : "")>
+                            Price (Low to High)
+                        </option>
+                        <option value="@Url.Action("Index", "Home", new { sort = "price_desc" })"
+                                @(ViewBag.CurrentSort == "price_desc" ? "selected" : "")>
+                            Price (High to Low)
+                        </option>
+                    </select>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Products Grid -->
+    <div class="row">
+        @if (Model != null && Model.Any())
+        {
+            foreach (var product in Model)
+            {
+                <div class="col-md-3 mb-4">
+                    <div class="card product-card h-100">
+                        <a href="@Url.Action("Details", "Product", new { id = product.Id })" class="text-decoration-none">
+                            <img src="@product.ImageUrl" class="card-img-top" alt="@product.Name">
+                        </a>
+                        <div class="card-body d-flex flex-column">
+                            <a href="@Url.Action("Details", "Product", new { id = product.Id })" class="text-decoration-none">
+                                <h5 class="card-title text-dark">@product.Name</h5>
+                                <p class="card-text small text-muted">@product.Description</p>
+                            </a>
+                            <div class="d-flex justify-content-between align-items-center mt-auto">
+                                <span class="fw-bold">@product.Price.ToString("C")</span>
+                                <a href="@Url.Action("AddToCart", "Cart", new { id = product.Id })" 
+                                   class="btn btn-buy">
+                                    <i class="fas fa-cart-plus"></i> Add
+                                </a>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            }
+        }
+        else
+        {
+            <div class="col-12 text-center py-5">
+                <i class="fas fa-search fa-3x mb-3 text-muted"></i>
+                <h4>No products found</h4>
+                <p class="text-muted">Try adjusting your search or filter criteria</p>
+            </div>
+        }
+    </div>
+
+    <!-- Pagination (optional) -->
+    @if (ViewBag.TotalPages > 1)
+    {
+        <div class="d-flex justify-content-center mt-4">
+            <nav aria-label="Page navigation">
+                <ul class="pagination">
+                    @for (int i = 1; i <= ViewBag.TotalPages; i++)
+                    {
+                        <li class="page-item @(ViewBag.CurrentPage == i ? "active" : "")">
+                            <a class="page-link" href="@Url.Action("Index", "Home", new { page = i, categoryId = ViewBag.SelectedCategory, searchTerm = ViewBag.CurrentSearch, sort = ViewBag.CurrentSort })">
+                                @i
+                            </a>
+                        </li>
+                    }
+                </ul>
+            </nav>
+        </div>
+    }
+</div>
