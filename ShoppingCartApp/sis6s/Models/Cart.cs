@@ -24,6 +24,22 @@ namespace sis6s.Models
 
         public DateTime? UpdatedAt { get; set; }
 
+        [StringLength(200)]
+        public string ShippingAddress { get; set; }
+
+        [StringLength(50)]
+        public string ShippingMethod { get; set; }
+
+        [StringLength(100)]
+        public string FullName { get; set; }
+
+        [StringLength(20)]
+        public string PhoneNumber { get; set; }
+
+        [EmailAddress]
+        [StringLength(100)]
+        public string Email { get; set; }
+
         // Navigation property
         public virtual ICollection<CartItem> CartItems { get; set; }
     }

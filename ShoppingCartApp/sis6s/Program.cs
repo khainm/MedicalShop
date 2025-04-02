@@ -12,7 +12,14 @@ builder.Services.AddControllersWithViews();
 builder.Services.AddDbContext<ApplicationDbContext>(options =>
     options.UseSqlServer(builder.Configuration.GetConnectionString("DefaultConnection")));
 
-builder.Services.AddDefaultIdentity<ApplicationUser>(options => options.SignIn.RequireConfirmedAccount = true)
+builder.Services.AddDefaultIdentity<ApplicationUser>(options => {
+    options.SignIn.RequireConfirmedAccount = false;
+    options.Password.RequireDigit = true;
+    options.Password.RequireLowercase = true;
+    options.Password.RequireUppercase = true;
+    options.Password.RequireNonAlphanumeric = true;
+    options.Password.RequiredLength = 6;
+})
     .AddRoles<IdentityRole>()
     .AddEntityFrameworkStores<ApplicationDbContext>();
 
@@ -46,19 +53,19 @@ app.MapControllerRoute(
 
 app.MapControllerRoute(
     name: "areas",
-    pattern: "{area:exists}/{controller=SanPham}/{action=Index}/{id?}");
+    pattern: "{area:exists}/{controller=Product}/{action=Index}/{id?}");
 
 app.MapControllerRoute(
     name: "default",
-    pattern: "{controller=SanPham}/{action=Index}/{id?}",
+    pattern: "{controller=Product}/{action=Index}/{id?}",
     defaults: new { area = "User" });
 
 
 
-app.MapControllerRoute(
-    name: "default",
-    pattern: "{controller=Home}/{action=Index}/{id?}",
-    defaults: new { area = "User" });
+// app.MapControllerRoute(
+//     name: "default",
+//     pattern: "{controller=Home}/{action=Index}/{id?}",
+//     defaults: new { area = "User" });
 app.MapRazorPages();
 
 // Seed Roles and Admin

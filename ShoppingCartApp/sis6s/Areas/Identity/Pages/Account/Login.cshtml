@@ -61,41 +61,27 @@
     <partial name="_ValidationScriptsPartial" />
     
     <script>
-        // Check if there are products in session storage when logging in
-        document.getElementById('account').addEventListener('submit', function(e) {
-            e.preventDefault();
-            
-            const formData = new FormData(this);
-            const formAction = this.action;
-            
-            fetch(formAction, {
-                method: 'POST',
-                body: formData
-            })
-            .then(response => {
-                if (response.redirected) {
-                    const productInfo = sessionStorage.getItem('pendingAddToCart');
-                    if (productInfo) {
-                        const product = JSON.parse(productInfo);
-                        // Add product to cart after login
-                        fetch('/User/Cart/AddProduct', {
-                            method: 'POST',
-                            headers: {
-                                'Content-Type': 'application/x-www-form-urlencoded',
-                            },
-                            body: new URLSearchParams({
-                                'productId': product.sanPhamId,
-                                'quantity': product.soLuong,
-                                'shippingAddress': product.diaChiGiaoHang,
-                                'shippingMethod': product.hinhThucGiaoHang
-                            })
-                        }).then(() => {
-                            sessionStorage.removeItem('pendingAddToCart');
-                            window.location.href = '/User/Cart';
-                        });
-                    } else {
-                        window.location.href = response.url;
-                    }
+        // Handle pending cart items after successful login
+        window.onload = function() {
+            const productInfo = sessionStorage.getItem('pendingAddToCart');
+            if (productInfo) {
+                const product = JSON.parse(productInfo);
+                fetch('/User/Cart/AddProduct', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/x-www-form-urlencoded',
+                    },
+                    body: new URLSearchParams({
+                        'productId': product.sanPhamId,
+                        'quantity': product.soLuong,
+                        'shippingAddress': product.diaChiGiaoHang,
+                        'shippingMethod': product.hinhThucGiaoHang
+                    })
+                }).then(() => {
+                    sessionStorage.removeItem('pendingAddToCart');
+                    window.location.href = '/User/Cart';
+                });
+            }
                 } else {
                     response.text().then(html => {
                         const parser = new DOMParser();

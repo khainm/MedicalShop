@@ -8,7 +8,7 @@ using sis6s.Models;
 using sis6s.Services;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.Extensions.Logging;
-using sis6s.Areas.User.Models;
+using sis6s.Models;
 
 namespace sis6s.Areas.User.Controllers
 {
@@ -70,7 +70,7 @@ namespace sis6s.Areas.User.Controllers
             var cartItems = cart.CartItems ?? new List<CartItem>();
             
             // Create a tuple with cart items and checkout view model
-            var viewModel = (cartItems, new CheckoutViewModel());
+            var viewModel = (cartItems, new Order());
             
             return View(viewModel);
         }
@@ -106,9 +106,9 @@ namespace sis6s.Areas.User.Controllers
             }
 
             // Check stock quantity
-            if (product.Stock <= 0)
+            if (product.Stock < quantity)
             {
-                TempData["Message"] = "Insufficient product quantity in stock!";
+                TempData["Message"] = "Số lượng sản phẩm trong kho không đủ!";
                 return RedirectToAction("Details", "Product", new { id = productId });
             }
 
@@ -156,16 +156,16 @@ namespace sis6s.Areas.User.Controllers
             try
             {
                 await _context.SaveChangesAsync();
-                TempData["Message"] = "Product added to cart successfully!";
+                TempData["Message"] = "Sản phẩm đã được thêm vào giỏ hàng thành công!";
+                return RedirectToAction(nameof(Index), "Cart", new { area = "User" });
             }
             catch (DbUpdateException ex)
             {
                 // Log error
                 _logger.LogError(ex, "Error adding product to cart");
-                TempData["Message"] = "An error occurred while adding the product to cart!";
+                TempData["Message"] = "Đã xảy ra lỗi khi thêm sản phẩm vào giỏ hàng!";
+                return RedirectToAction("Details", "Product", new { id = productId });
             }
-
-            return RedirectToAction("Details", "Product", new { id = productId });
         }
 
         [HttpPost]
@@ -197,13 +197,12 @@ namespace sis6s.Areas.User.Controllers
         }
 
         [HttpPost]
-        [ValidateAntiForgeryToken]
-        public async Task<IActionResult> RemoveItem(int cartItemId)
+        public async Task<IActionResult> RemoveItem(int productId)
         {
             var user = await _userManager.GetUserAsync(User);
             var cartItem = await _context.CartItems
                 .Include(c => c.Cart)
-                .FirstOrDefaultAsync(c => c.Id == cartItemId && c.Cart.UserId == user.Id);
+                .FirstOrDefaultAsync(c => c.ProductId == productId && c.Cart.UserId == user.Id);
 
             if (cartItem == null)
             {
@@ -218,7 +217,95 @@ namespace sis6s.Areas.User.Controllers
 
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public async Task<IActionResult> Checkout(CheckoutViewModel model)
+        public async Task<IActionResult> CheckoutPost(Order model)
+        {
+            if (!ModelState.IsValid)
+            {
+                var user = await _userManager.GetUserAsync(User);
+                var cart = await _context.Carts
+                    .Include(c => c.CartItems)
+                        .ThenInclude(ci => ci.Product)
+                    .FirstOrDefaultAsync(c => c.UserId == user.Id);
+                
+                var cartItems = cart?.CartItems ?? new List<CartItem>();
+                return View("Index", (cartItems, model));
+            }
+            
+            var userId = _userManager.GetUserId(User);
+            if (string.IsNullOrEmpty(userId))
+            {
+                return NotFound();
+            }
+
+            // Khởi tạo thanh toán qua VNPay
+            var order = new Order
+            {
+                UserId = userId,
+                TotalAmount = model.TotalAmount,
+                CreatedAt = DateTime.Now,
+                UpdatedAt = DateTime.Now
+            };
+            _context.Orders.Add(order);
+            await _context.SaveChangesAsync();
+
+            var returnUrl = Url.Action("PaymentCallback", "Cart", new { area = "User" }, protocol: HttpContext.Request.Scheme);
+            var paymentUrl = _vnPayService.CreatePaymentUrl(order, returnUrl);
+
+            return Redirect(paymentUrl);
+        }
+
+        public async Task<IActionResult> PaymentCallback()
+        {
+            var query = HttpContext.Request.Query;
+            var response = _vnPayService.ProcessPaymentResponse(query);
+
+            if (response.ResponseCode == "00")
+            {
+                // Cập nhật trạng thái đơn hàng
+                var order = await _context.Orders.FirstOrDefaultAsync(o => o.Id == Convert.ToInt32(response.OrderId));
+                if (order != null)
+                {
+                    order.Status = OrderStatus.Paid;
+                    await _context.SaveChangesAsync();
+                }
+
+                TempData["Message"] = "Thanh toán thành công!";
+            }
+            else
+            {
+                TempData["Message"] = "Thanh toán thất bại!";
+            }
+
+            return RedirectToAction(nameof(Index));
+        }
+
+        public async Task<IActionResult> UpdateSelectedItems(List<int> selectedProductIds)
+        {
+            var user = await _userManager.GetUserAsync(User);
+            var cartItems = await _context.CartItems
+                .Include(ci => ci.Product)
+                .Include(ci => ci.Cart)
+                .Where(ci => ci.Cart.UserId == user.Id)
+                .ToListAsync();
+
+            decimal selectedTotal = 0;
+            decimal shippingFee = 5; // Phí vận chuyển cố định 5$
+
+            if (selectedProductIds != null && selectedProductIds.Any())
+            {
+                selectedTotal = cartItems
+                    .Where(ci => selectedProductIds.Contains(ci.ProductId))
+                    .Sum(ci => ci.Product.Price * ci.Quantity);
+            }
+
+            selectedTotal += shippingFee; // Thêm phí vận chuyển vào tổng tiền
+            TempData["SelectedTotal"] = selectedTotal.ToString("N0") + " $";
+            TempData["ShippingFee"] = shippingFee.ToString("N0") + " $";
+            return RedirectToAction(nameof(Index));
+        }
+
+        [HttpGet]
+        public async Task<IActionResult> CheckoutGet(Order model)
         {
             if (!ModelState.IsValid)
             {
@@ -243,13 +330,8 @@ namespace sis6s.Areas.User.Controllers
             return View();
         }
 
-        [HttpGet]
-        public async Task<IActionResult> PaymentCallback()
-        {
-            // Payment callback logic...
-            
-            return View();
-        }
+
     }
 }
+
 

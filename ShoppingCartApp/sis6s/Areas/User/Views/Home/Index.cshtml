@@ -124,8 +124,8 @@
                         <option value="@Url.Action("Index", "Home")">All Categories</option>
                         @foreach (var category in ViewBag.Categories ?? new List<dynamic>())
                         {
-                            <option value="@Url.Action("Index", "Home", new { categoryId = category.Id })"
-                                    @(ViewBag.SelectedCategory == category.Id ? "selected" : "")>
+                            <option value="@Url.Action("Index", "Home", new { categoryId = category.Id })" 
+                                   selected="@(ViewBag.SelectedCategory == category.Id)">
                                 @category.Name
                             </option>
                         }
@@ -134,20 +134,20 @@
                 <div>
                     <select class="form-select dropdown-sort" name="sort" id="sortOrder" 
                             onchange="location = this.value;">
-                        <option value="@Url.Action("Index", "Home", new { sort = "name_asc" })"
-                                @(ViewBag.CurrentSort == "name_asc" ? "selected" : "")>
+                        <option value="@Url.Action("Index", "Home", new { sort = "name_asc" })" 
+                               selected="@(ViewBag.CurrentSort == "name_asc")">
                             Name (A-Z)
                         </option>
-                        <option value="@Url.Action("Index", "Home", new { sort = "name_desc" })"
-                                @(ViewBag.CurrentSort == "name_desc" ? "selected" : "")>
+                        <option value="@Url.Action("Index", "Home", new { sort = "name_desc" })" 
+                               selected="@(ViewBag.CurrentSort == "name_desc")">
                             Name (Z-A)
                         </option>
-                        <option value="@Url.Action("Index", "Home", new { sort = "price_asc" })"
-                                @(ViewBag.CurrentSort == "price_asc" ? "selected" : "")>
+                        <option value="@Url.Action("Index", "Home", new { sort = "price_asc" })" 
+                               selected="@(ViewBag.CurrentSort == "price_asc")">
                             Price (Low to High)
                         </option>
-                        <option value="@Url.Action("Index", "Home", new { sort = "price_desc" })"
-                                @(ViewBag.CurrentSort == "price_desc" ? "selected" : "")>
+                        <option value="@Url.Action("Index", "Home", new { sort = "price_desc" })" 
+                               selected="@(ViewBag.CurrentSort == "price_desc")">
                             Price (High to Low)
                         </option>
                     </select>

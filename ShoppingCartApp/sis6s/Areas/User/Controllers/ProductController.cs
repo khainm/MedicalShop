@@ -16,35 +16,61 @@ namespace sis6s.Areas.User.Controllers
             _context = context;
         }
 
-        public async Task<IActionResult> Index(string searchString, string sortOrder)
+        public async Task<IActionResult> Index(string searchString, int? categoryId, decimal? minPrice, decimal? maxPrice, string sortBy)
         {
             var products = _context.Products.Include(p => p.Category).AsQueryable();
 
+            // Filter by search string
             if (!string.IsNullOrEmpty(searchString))
             {
-                products = products.Where(p => p.Name.Contains(searchString));
+                products = products.Where(p => p.Name.Contains(searchString) || p.Description.Contains(searchString));
             }
 
-            switch (sortOrder)
+            // Filter by category
+            if (categoryId.HasValue)
             {
-                case "gia_tang":
+                products = products.Where(p => p.CategoryId == categoryId);
+            }
+
+            // Filter by price range
+            if (minPrice.HasValue)
+            {
+                products = products.Where(p => p.Price >= minPrice);
+            }
+            if (maxPrice.HasValue)
+            {
+                products = products.Where(p => p.Price <= maxPrice);
+            }
+
+            // Apply sorting
+            switch (sortBy)
+            {
+                case "name_asc":
+                    products = products.OrderBy(p => p.Name);
+                    break;
+                case "name_desc":
+                    products = products.OrderByDescending(p => p.Name);
+                    break;
+                case "price_asc":
                     products = products.OrderBy(p => p.Price);
                     break;
-                case "gia_giam":
+                case "price_desc":
                     products = products.OrderByDescending(p => p.Price);
+                    break;
+                default:
+                    products = products.OrderBy(p => p.Name);
                     break;
             }
 
-            ViewData["SearchString"] = searchString;
-            ViewData["SortOrder"] = sortOrder;
+            // Load categories for filter dropdown
+            ViewBag.Categories = new SelectList(_context.Categories, "Id", "Name", categoryId);
 
-            // Tạo SelectList cho dropdown giá
-            ViewBag.SortOptions = new List<SelectListItem>
-    {
-        new SelectListItem { Text = "-- Sắp xếp theo giá --", Value = "" },
-        new SelectListItem { Text = "Giá tăng dần", Value = "gia_tang", Selected = sortOrder == "gia_tang" },
-        new SelectListItem { Text = "Giá giảm dần", Value = "gia_giam", Selected = sortOrder == "gia_giam" }
-    };
+            // Store filter values in ViewData for maintaining state
+            ViewData["SearchString"] = searchString;
+            ViewData["CategoryId"] = categoryId;
+            ViewData["MinPrice"] = minPrice;
+            ViewData["MaxPrice"] = maxPrice;
+            ViewData["SortBy"] = sortBy;
 
             return View(await products.ToListAsync());
         }

@@ -1,4 +1,4 @@
-﻿@model (IEnumerable<sis6s.Models.CartItem>, sis6s.Areas.User.Models.CheckoutViewModel)
+﻿@model (ICollection<sis6s.Models.CartItem>, sis6s.Models.Cart)
 
 @{
     ViewData["Title"] = "Shopping Cart";
@@ -36,7 +36,7 @@
                     <div class="card-body">
                         @foreach (var item in cartItems)
                         {
-                            <div class="row mb-4 pb-3 border-bottom">
+                            <div class="row mb-4 pb-3 border-bottom cart-item-row" data-product-id="@item.ProductId">
                                 <div class="col-md-3">
                                     <img src="@item.Product.Image" class="img-fluid rounded" alt="@item.Product.Name">
                                 </div>
@@ -57,10 +57,16 @@
                                             </div>
                                         </div>
                                         <div class="text-end">
-                                            <h5 class="mb-0">@((item.Product.Price * item.Quantity).ToString("N0")) $</h5>
+                                            <h5 class="mb-0 cart-item-total" data-total="@(item.Product.Price * item.Quantity)">@((item.Product.Price * item.Quantity).ToString("N0")) $</h5>
                                             <small class="text-muted">@item.Product.Price.ToString("N0") $/item</small>
                                         </div>
                                     </div>
+                                </div>
+                                <div class="form-check">
+                                    <input class="form-check-input" type="checkbox" value="@item.ProductId" id="select-@item.ProductId" onchange="updateSelectedTotal()">
+                                    <label class="form-check-label" for="select-@item.ProductId">
+                                        Chọn để thanh toán
+                                    </label>
                                 </div>
                             </div>
                         }
@@ -75,16 +81,25 @@
                         <h5 class="card-title mb-4">Order Summary</h5>
                         <div class="d-flex justify-content-between mb-2">
                             <span>Subtotal</span>
-                            <span>@cartItems.Sum(x => x.Product.Price * x.Quantity).ToString("N0") $</span>
+                            <span class="subtotal-amount">@cartItems.Sum(x => x.Product.Price * x.Quantity).ToString("N0") $</span>
                         </div>
                         <div class="d-flex justify-content-between mb-2">
                             <span>Shipping</span>
-                            <span>Free</span>
+                            <span class="shipping-fee">@(TempData["ShippingFee"] ?? "5 $")</span>
+                        </div>
+                        <hr>
+                        <div class="d-flex justify-content-between mb-4">
+                            <strong>Tổng tiền đã chọn</strong>
+                            <strong class="text-primary selected-total-amount">@(TempData["SelectedTotal"] ?? "0 $")</strong>
+                        </div>
+                        <div class="d-flex justify-content-between mb-2">
+                            <span>Shipping</span>
+                            <span class="shipping-fee">@(TempData["ShippingFee"] ?? "5 $")</span>
                         </div>
                         <hr>
                         <div class="d-flex justify-content-between mb-4">
                             <strong>Total</strong>
-                            <strong class="text-primary">@cartItems.Sum(x => x.Product.Price * x.Quantity).ToString("N0") $</strong>
+                            <strong class="text-primary total-amount">@cartItems.Sum(x => x.Product.Price * x.Quantity).ToString("N0") $</strong>
                         </div>
 
                         <form asp-action="Checkout" method="post">
@@ -168,10 +183,50 @@
                     }
                 }).then(response => {
                     if (response.ok) {
-                        location.reload();
+                        // Remove the item from DOM
+                        const itemRow = document.querySelector(`[data-product-id="${productId}"]`);
+                        itemRow.remove();
+
+                        // Recalculate total
+                        let newTotal = 0;
+                        document.querySelectorAll('.cart-item-total').forEach(item => {
+                            newTotal += parseFloat(item.getAttribute('data-total'));
+                        });
+
+                        // Update subtotal and total
+                        document.querySelector('.subtotal-amount').textContent = newTotal.toLocaleString() + ' $';
+                        document.querySelector('.total-amount').textContent = newTotal.toLocaleString() + ' $';
+
+                        // If cart is empty, show empty cart message
+                        const cartItems = document.querySelectorAll('.cart-item-row');
+                        if (cartItems.length === 0) {
+                            const cartContainer = document.querySelector('.row');
+                            cartContainer.innerHTML = `
+                                <div class="text-center py-5">
+                                    <i class="fas fa-shopping-cart fa-3x text-muted mb-3"></i>
+                                    <h3>Your cart is empty</h3>
+                                    <p class="text-muted">You don't have any products in your cart yet.</p>
+                                    <a href="/" class="btn btn-primary">
+                                        <i class="fas fa-shopping-bag"></i> Continue Shopping
+                                    </a>
+                                </div>
+                            `;
+                        }
                     }
                 });
             }
         }
     </script>
-} 
+}
+
+<script>
+    function updateSelectedTotal() {
+        let selectedTotal = 0;
+        document.querySelectorAll('.form-check-input:checked').forEach(checkbox => {
+            const productId = checkbox.value;
+            const itemTotal = document.querySelector(`[data-product-id="${productId}"] .cart-item-total`).getAttribute('data-total');
+            selectedTotal += parseFloat(itemTotal);
+        });
+        document.querySelector('.selected-total-amount').textContent = selectedTotal.toLocaleString() + ' $';
+    }
+</script>
